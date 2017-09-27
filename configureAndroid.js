@@ -53,7 +53,7 @@ const createAndroid = (name) => {
 	shell.mkdir('-p', projectPath);
 
 	console.log('Cloning android template project...\n'.cyan)
-	shell.exec(`git clone https://github.com/victorg1991/cordova-templates ${projectPath}`.safePath, { silent: true });
+	shell.exec(`git clone https://github.com/victorg1991/cordova-templates ${projectPath.safePath}`, { silent: true });
 
 	copyWWWfolder(projectPath);
 	copyJavaPluginFiles(projectPath);
