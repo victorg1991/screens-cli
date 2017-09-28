@@ -2,6 +2,8 @@ const fs = require('fs-extra');
 const shell = require('shelljs');
 const colors = require('colors');
 const _ = require('./pathUtil');
+const ConfigParser = require('cordova-common').ConfigParser;
+
 const ANDROID_PATH = '.dummy-project/platforms/android';
 const DEFAULT_ACTIVITY = `
 package com.liferay.screenscordova;
@@ -42,6 +44,13 @@ const copyResFiles = (baseFolder) => {
 	fs.copySync(`${ANDROID_PATH}/res`.safePath, `${baseFolder}/app/src/main/res`.safePath);
 }
 
+const updateConfigXml = (baseFolder) => {
+	const conf = new ConfigParser(`${baseFolder}/app/src/main/res/xml/config.xml`.safePath);
+	conf.addElement("allow-navigation", { href: '*' });
+
+	conf.write();
+}
+
 const replaceMainActivity = (baseFolder) => {
 	shell.mkdir('-p', `${baseFolder}/app/src/main/java/com/liferay/screenscordova`.safePath);
 	fs.writeFileSync(`${baseFolder}/app/src/main/java/com/liferay/screenscordova/MainActivity.java`.safePath, DEFAULT_ACTIVITY);
@@ -58,6 +67,7 @@ const createAndroid = (name) => {
 	copyWWWfolder(projectPath);
 	copyJavaPluginFiles(projectPath);
 	copyResFiles(projectPath);
+	updateConfigXml(projectPath);
 	copyAndroidManifest(projectPath);
 	replaceMainActivity(projectPath);
 }
