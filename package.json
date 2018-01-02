@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "format": "prettier --write src/**/*.js index.js"
   },
   "bin": {
     "screens-cli": "./index.js"
@@ -19,5 +20,8 @@
     "fs-extra": "^4.0.1",
     "rimraf": "^2.6.2",
     "xcode": "^0.9.3"
+  },
+  "devDependencies": {
+    "prettier": "1.9.2"
   }
 }

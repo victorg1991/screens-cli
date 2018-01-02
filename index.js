@@ -8,8 +8,8 @@ const fs = require('fs-extra');
 const EventEmitter = require('events').EventEmitter;
 const colors = require('colors');
 
-const configureAndroid = require('./configureAndroid');
-const configureiOS = require('./configureiOS');
+const configureAndroid = require('./src/configureAndroid');
+const configureiOS = require('./src/configureiOS');
 
 if (process.argv.length !== 4) {
 	console.log('Usage: screens [ios | android] <project-name>');
@@ -26,8 +26,7 @@ if (platformChoosen !== 'ios' && platformChoosen !== 'android') {
 
 const eventEmitter = new EventEmitter();
 
-eventEmitter
-	.on('log', console.log)
+eventEmitter.on('log', console.log);
 
 // Delete old proyect if exist
 shell.rm('-rf', '.dummy-project');
@@ -39,7 +38,7 @@ console.log('Creating dummy cordova project to fetch files/assets... 📖\n'.cya
 create('.dummy-project', null, name, null, eventEmitter)
 	.then(() => {
 		shell.cd('.dummy-project');
-		return platform("add", platformChoosen);
+		return platform('add', platformChoosen);
 	})
 	.then(() => {
 		console.log('Looking for plugins in the .plugins.screens file...\n'.cyan);
@@ -56,22 +55,23 @@ create('.dummy-project', null, name, null, eventEmitter)
 		shell.cd('..');
 		if (platformChoosen === 'ios') {
 			configureiOS(name);
-		}
-		else {
+		} else {
 			configureAndroid(name);
 		}
 
-
-		console.log('Done! ✅'.green)
+		console.log('Done! ✅'.green);
 	})
 	.catch(error => console.log(`ERROR: ${error}`.red));
 
 function getPlugins() {
 	try {
 		const pluginsFile = fs.readFileSync('../.plugins.screens'.safePath);
-		const pluginsToInstall = pluginsFile.toString().split('\n').filter(x => x.length !== 0);
+		const pluginsToInstall = pluginsFile
+			.toString()
+			.split('\n')
+			.filter(x => x.length !== 0);
 		return Promise.resolve(pluginsToInstall);
 	} catch (_) {
-		return Promise.reject("There is not file .plugins.screens in this directory.");
+		return Promise.reject('There is not file .plugins.screens in this directory.');
 	}
 }

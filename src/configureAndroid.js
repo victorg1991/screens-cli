@@ -17,51 +17,57 @@ public class MainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 	}
 }
-`
+`;
 
-const copyWWWfolder = (baseFolder) => {
+const copyWWWfolder = baseFolder => {
 	fs.copySync(`${ANDROID_PATH}/assets`.safePath, `${baseFolder}/app/src/main/assets`.safePath);
-}
+};
 
-const copyJavaPluginFiles = (baseFolder) => {
+const copyJavaPluginFiles = baseFolder => {
 	const plugins = fs.readdirSync(`${ANDROID_PATH}/src`.safePath).filter(p => p !== 'io');
 
 	for (const plugin of plugins) {
 		fs.copySync(`${ANDROID_PATH}/src/${plugin}`.safePath, `${baseFolder}/app/src/main/java/${plugin}`.safePath);
 	}
-}
+};
 
-const copyAndroidManifest = (baseFolder) => {
-	fs.copySync(`${ANDROID_PATH}/AndroidManifest.xml`.safePath, `${baseFolder}/app/src/main/AndroidManifest.xml`.safePath)
+const copyAndroidManifest = baseFolder => {
+	fs.copySync(
+		`${ANDROID_PATH}/AndroidManifest.xml`.safePath,
+		`${baseFolder}/app/src/main/AndroidManifest.xml`.safePath
+	);
 
 	const manifest = fs.readFileSync(`${baseFolder}/app/src/main/AndroidManifest.xml`.safePath);
 	const manifestChanged = manifest.toString().replace('io.cordova.hellocordova', 'com.liferay.screenscordova');
 
 	fs.writeFileSync(`${baseFolder}/app/src/main/AndroidManifest.xml`.safePath, manifestChanged);
-}
+};
 
-const copyResFiles = (baseFolder) => {
+const copyResFiles = baseFolder => {
 	fs.copySync(`${ANDROID_PATH}/res`.safePath, `${baseFolder}/app/src/main/res`.safePath);
-}
+};
 
-const updateConfigXml = (baseFolder) => {
+const updateConfigXml = baseFolder => {
 	const conf = new ConfigParser(`${baseFolder}/app/src/main/res/xml/config.xml`.safePath);
-	conf.addElement("allow-navigation", { href: '*' });
+	conf.addElement('allow-navigation', { href: '*' });
 
 	conf.write();
-}
+};
 
-const replaceMainActivity = (baseFolder) => {
+const replaceMainActivity = baseFolder => {
 	shell.mkdir('-p', `${baseFolder}/app/src/main/java/com/liferay/screenscordova`.safePath);
-	fs.writeFileSync(`${baseFolder}/app/src/main/java/com/liferay/screenscordova/MainActivity.java`.safePath, DEFAULT_ACTIVITY);
-}
+	fs.writeFileSync(
+		`${baseFolder}/app/src/main/java/com/liferay/screenscordova/MainActivity.java`.safePath,
+		DEFAULT_ACTIVITY
+	);
+};
 
-const createAndroid = (name) => {
-	const projectPath = `platform/${name}`
-	shell.rm('-rf', 'platform');
+const createAndroid = name => {
+	const projectPath = `platform/android/${name}`.safePath;
+	shell.rm('-rf', projectPath);
 	shell.mkdir('-p', projectPath);
 
-	console.log('Cloning android template project...\n'.cyan)
+	console.log('Cloning android template project...\n'.cyan);
 	shell.exec(`git clone https://github.com/victorg1991/cordova-templates ${projectPath.safePath}`, { silent: true });
 
 	copyWWWfolder(projectPath);
@@ -70,7 +76,6 @@ const createAndroid = (name) => {
 	updateConfigXml(projectPath);
 	copyAndroidManifest(projectPath);
 	replaceMainActivity(projectPath);
-}
-
+};
 
 module.exports = createAndroid;
