@@ -1,13 +1,15 @@
+#!/usr/bin/env node
+
 const create = require('cordova-create');
 const platform = require('cordova-lib/src/cordova/platform');
 const plugin = require('cordova-lib/src/cordova/plugin');
 const shell = require('shelljs');
 const fs = require('fs-extra');
-const Q = require('Q');
 const EventEmitter = require('events').EventEmitter;
 const colors = require('colors');
 
 const configureAndroid = require('./configureAndroid');
+const configureiOS = require('./configureiOS');
 
 if (process.argv.length !== 4) {
 	console.log('Usage: screens [ios | android] <project-name>');
@@ -16,6 +18,11 @@ if (process.argv.length !== 4) {
 
 const platformChoosen = process.argv[2].toLowerCase();
 const name = process.argv[3];
+
+if (platformChoosen !== 'ios' && platformChoosen !== 'android') {
+	console.log('platform not supported: try with ios or android');
+	return -1;
+}
 
 const eventEmitter = new EventEmitter();
 
@@ -35,24 +42,36 @@ create('.dummy-project', null, name, null, eventEmitter)
 		return platform("add", platformChoosen);
 	})
 	.then(() => {
-		console.log('Installing plugins...\n'.cyan);
-		const plugins = getPlugins();
-		const promises = plugins.map(p => plugin('add', p));
+		console.log('Looking for plugins in the .plugins.screens file...\n'.cyan);
+		return getPlugins();
+	})
+	.then(plugins => {
+		plugins.forEach(plugin => console.log(`Detected plugin ${plugin}`.blue));
+		console.log('\nInstalling plugins...\n'.cyan);
 
-		return Q.all(promises);
+		const promises = plugins.map(p => plugin('add', p));
+		return Promise.all(promises);
 	})
 	.then(() => {
 		shell.cd('..');
-		configureAndroid(name);
+		if (platformChoosen === 'ios') {
+			configureiOS(name);
+		}
+		else {
+			configureAndroid(name);
+		}
+
 
 		console.log('Done! ✅'.green)
 	})
-	.catch(error => console.log(error.red));
-
+	.catch(error => console.log(`ERROR: ${error}`.red));
 
 function getPlugins() {
-	const pluginsFile = fs.readFileSync('../.plugins.screens'.safePath);
-	const pluginsToInstall = pluginsFile.toString().split('\n').filter(x => x.length !== 0);
-
-	return pluginsToInstall
+	try {
+		const pluginsFile = fs.readFileSync('../.plugins.screens'.safePath);
+		const pluginsToInstall = pluginsFile.toString().split('\n').filter(x => x.length !== 0);
+		return Promise.resolve(pluginsToInstall);
+	} catch (_) {
+		return Promise.reject("There is not file .plugins.screens in this directory.");
+	}
 }
