@@ -8,3 +8,5 @@
 /captures
 .externalNativeBuild
 node_modules
+platform
+.dummy-project
