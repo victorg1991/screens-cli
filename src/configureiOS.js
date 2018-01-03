@@ -1,10 +1,11 @@
 const shell = require('shelljs');
 const xcode = require('xcode');
 const fs = require('fs-extra');
+const _ = require('./pathUtil');
 const rmrf = require('rimraf');
 const ConfigParser = require('cordova-common').ConfigParser;
 
-const IOS_PATH = '.dummy-project/platforms/ios';
+const IOS_PATH = '.dummy-project/platforms/ios'.safePath;
 
 const replacePlaceholder = (value, name) => value.replace(/{PROJECT_NAME}/g, name);
 
@@ -12,7 +13,8 @@ const renameProjectFiles = (folderName, name) => {
 	const files = fs
 		.readdirSync(folderName)
 		.filter(file => !file.startsWith('.'))
-		.map(file => folderName + '/' + file);
+		.map(file => folderName + '/' + file)
+		.map(filePath => filePath.safePath);
 
 	for (const fileName of files) {
 		if (fs.lstatSync(fileName).isDirectory()) {
@@ -32,14 +34,15 @@ const renameProjectFiles = (folderName, name) => {
 };
 
 const copyConfigFile = (baseFolder, name) =>
-	fs.copySync(`${IOS_PATH}/${name}/config.xml`, `${baseFolder}/Resources/config.xml`);
+	fs.copySync(`${IOS_PATH}/${name}/config.xml`.safePath, `${baseFolder}/Resources/config.xml`.safePath);
 
-const copyPlugins = (baseFolder, name) => fs.copySync(`${IOS_PATH}/${name}/Plugins`, `${baseFolder}/Plugins`);
+const copyPlugins = (baseFolder, name) =>
+	fs.copySync(`${IOS_PATH}/${name}/Plugins`.safePath, `${baseFolder}/Plugins`.safePath);
 
-const copyWWWFolder = baseFolder => fs.copySync(`${IOS_PATH}/www`, `${baseFolder}/Resources/www`);
+const copyWWWFolder = baseFolder => fs.copySync(`${IOS_PATH}/www`.safePath, `${baseFolder}/Resources/www`.safePath);
 
 const updateConfigXml = (baseFolder, name) => {
-	const conf = new ConfigParser(`${baseFolder}/Resources/config.xml`);
+	const conf = new ConfigParser(`${baseFolder}/Resources/config.xml`.safePath);
 	conf.addElement('allow-navigation', { href: '*' });
 
 	conf.write();
@@ -47,10 +50,12 @@ const updateConfigXml = (baseFolder, name) => {
 
 const addPlugins = (proj, baseFolder) => {
 	const cordovaPluginsFolders = fs
-		.readdirSync(`${baseFolder}/Plugins`)
-		.filter(content => fs.lstatSync(`${baseFolder}/Plugins/${content}`).isDirectory());
+		.readdirSync(`${baseFolder}/Plugins`.safePath)
+		.filter(content => fs.lstatSync(`${baseFolder}/Plugins/${content}`.safePath).isDirectory());
 	const files = cordovaPluginsFolders
-		.map(folder => fs.readdirSync(`${baseFolder}/Plugins/${folder}`).map(x => `Plugins/${folder}/${x}`))
+		.map(folder =>
+			fs.readdirSync(`${baseFolder}/Plugins/${folder}`.safePath).map(x => `Plugins/${folder}/${x}`.safePath)
+		)
 		.reduce((acc, x) => [...acc, ...x], []);
 
 	files.forEach(file => {
@@ -63,7 +68,7 @@ const addPlugins = (proj, baseFolder) => {
 };
 
 const configureiOS = name => {
-	const projectPath = `platform/ios/${name}`;
+	const projectPath = `platform/ios/${name}`.safePath;
 	shell.rm('-rf', projectPath);
 	shell.mkdir('-p', projectPath);
 
@@ -78,7 +83,7 @@ const configureiOS = name => {
 	copyWWWFolder(`${projectPath}/${name}`);
 	updateConfigXml(`${projectPath}/${name}`);
 
-	const xprojPath = `${projectPath}/${name}.xcodeproj/project.pbxproj`;
+	const xprojPath = `${projectPath}/${name}.xcodeproj/project.pbxproj`.safePath;
 	const myProj = xcode.project(xprojPath);
 
 	myProj.parse(err => {
