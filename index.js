@@ -54,11 +54,12 @@ create('.dummy-project', null, name, null, eventEmitter)
 	.then(() => {
 		shell.cd('..');
 		if (platformChoosen === 'ios') {
-			configureiOS(name);
+			return configureiOS(name);
 		} else {
-			configureAndroid(name);
+			return configureAndroid(name);
 		}
-
+	})
+	.then(() => {
 		console.log('Done! ✅'.green);
 	})
 	.catch(error => console.log(`ERROR: ${error}`.red));

@@ -86,14 +86,24 @@ const configureiOS = name => {
 	const xprojPath = `${projectPath}/${name}.xcodeproj/project.pbxproj`.safePath;
 	const myProj = xcode.project(xprojPath);
 
-	myProj.parse(err => {
-		addPlugins(myProj, `${projectPath}/${name}`);
+	return new Promise((resolve, reject) => {
+		myProj.parse(err => {
+			if (err) {
+				reject(err);
+				return;
+			}
 
-		myProj.addResourceFile('www');
-		myProj.addResourceFile('config.xml');
+			addPlugins(myProj, `${projectPath}/${name}`);
 
-		fs.writeFileSync(xprojPath, myProj.writeSync());
-	});
+			myProj.addResourceFile('www');
+			myProj.addResourceFile('config.xml');
+
+			fs.writeFileSync(xprojPath, myProj.writeSync());
+
+			resolve();
+		});
+	})
+
 };
 
 module.exports = configureiOS;

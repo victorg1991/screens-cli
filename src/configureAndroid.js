@@ -76,6 +76,8 @@ const createAndroid = name => {
 	updateConfigXml(projectPath);
 	copyAndroidManifest(projectPath);
 	replaceMainActivity(projectPath);
+
+	return Promise.resolve();
 };
 
 module.exports = createAndroid;
